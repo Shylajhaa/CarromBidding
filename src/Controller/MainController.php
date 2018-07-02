@@ -145,42 +145,4 @@ class MainController extends AppController
         }
     }
 
-    // public function getRandomNumber()
-    // {
-    //     $players = TableRegistry::get('Players');
-
-    //     $query = $players->find();
-    //     $playerIds = $query->select(['id'])
-    //                        ->where(['base_points' => 25]);
-
-    //     // $this->set("playerIds",$playerIds);
-    //     // $this->set("_serialize",true);
-
-    //     $ids = [];
-    //     $i = 0;
-    //     foreach ($playerIds as $player) 
-    //     {
-    //         $ids[$i] = $player->id;
-    //         $i++;    
-    //         // echo $player->id;
-    //     }
-    //     $randomId = array_rand($ids);
-    //     return $ids[$randomId];    
-    // }
-
-    // public function getRandomPlayer($basePoints = 25)
-    // {
-    //     $data=$this->request->input('json_decode');
-
-    //     $id = $this->getRandomNumber();
-    //     echo $id;
-        
-    //     $playersTable = TableRegistry::get('Players');
-    //     $player = TableRegistry::get("Players")
-    //             ->find()
-    //             ->where(['id' => $id]);
-
-    //     $this->set("player",$player);
-    //     $this->set("_serialize",true);
-    // }
 }

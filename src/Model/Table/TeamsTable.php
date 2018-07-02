@@ -5,6 +5,7 @@ use Cake\ORM\Query;
 use Cake\ORM\RulesChecker;
 use Cake\ORM\Table;
 use Cake\Validation\Validator;
+use Cake\ORM\TableRegistry;
 
 /**
  * Teams Model
@@ -87,4 +88,23 @@ class TeamsTable extends Table
 
         return $validator;
     }
+
+    public function updateTeamPoints($teamId,$bidPoints,$current_bid_points)
+    {
+          echo $teamId." ".$bidPoints." ".$current_bid_points;
+          $teams = TableRegistry::get("Teams");
+
+          $team = $teams->get($teamId);
+
+          $data = ['bid_points' => ($current_bid_points - $bidPoints)];
+          $team = $teams->patchEntity($team, $data, ['validate' => false]);
+          if ($teams->save($team)) 
+          {
+              // $this->Flash->success(__('The player has been saved.'));
+            // $this->set("team",$team);
+            // $this->set("_serialize",true);
+            echo "succesfully updated teams bid points";
+          } 
+    }
+
 }

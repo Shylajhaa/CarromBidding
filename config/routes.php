@@ -52,7 +52,7 @@ Router::defaultRouteClass(DashedRoute::class);
 Router::scope('/', function (RouteBuilder $routes) {
 
     $routes->resources('Teams');
-    $routes->resources('Players');
+     $routes->resources('Players');
     /**
      * Here, we are connecting '/' (base path) to a controller called 'Pages',
      * its action called 'display', and we pass a param to select the view file
@@ -68,6 +68,8 @@ Router::scope('/', function (RouteBuilder $routes) {
      // $routes->connect('/addTeam/',['controller' => 'Main','action' => 'addTeam']);
 
      $routes->connect('/Players/getRandomPlayer/',['controller' => 'Players','action' => 'getRandomPlayer']);
+
+     $routes->connect('/Players/bidPlayer/',['controller' => 'Players','action' => 'bidPlayer']);
 
      // $routes->connect('/Players/add/',['controller' => 'Players','action' => 'add']);
 

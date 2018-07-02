@@ -5,6 +5,7 @@ use Cake\ORM\Query;
 use Cake\ORM\RulesChecker;
 use Cake\ORM\Table;
 use Cake\Validation\Validator;
+use Cake\ORM\TableRegistry;
 
 /**
  * Players Model
@@ -87,7 +88,6 @@ class PlayersTable extends Table
             ->integer('bid_value')
             ->requirePresence('bid_value', 'create')
             ->notEmpty('bid_value');
-
         return $validator;
     }
 
@@ -105,4 +105,87 @@ class PlayersTable extends Table
 
         return $rules;
     }
+
+    public function getRandomNumber($basePoints)
+    {
+        // echo $basePoints;
+        $players = TableRegistry::get('Players');
+
+        $query = $players->find();
+        $players = $query->select(['id'])
+                         ->where(['base_points' => $basePoints]);
+                
+        echo count($players);
+
+        if(count($players) != 0)
+        {
+            echo "not zero";
+            $ids = [];
+            $i = 0;
+            foreach ($players as $player) 
+            {
+                echo "hi";
+                $ids[$i] = $player->id;
+                $i++;    
+            }
+            $randomId = array_rand($ids);
+            return $ids[$randomId];  
+        } 
+        return 0; 
+        // return $players;
+    }
+
+    public function mapPlayerToTeam($playerId,$teamId,$bidPoints)
+    {
+          $players = TableRegistry::get("Players");
+          $player = $players->get($playerId);
+
+          $data = ['team_id' => $teamId, 'bid_value' => $bidPoints];
+          $player = $players->patchEntity($player, $data, ['validate' => false]);
+          if ($players->save($player)) 
+          {
+              echo "successfully mapped player to team";
+          } 
+    }
+
+    public function validateBid($playerId,$teamId,$current_bid_points,$bid_points,$player_base_points)
+    {
+          $teams = TableRegistry::get("Teams");
+
+          if($bid_points <= $current_bid_points)
+          {
+              echo "bid points greater";
+              $players = TableRegistry::get("Players");
+
+              $fetchData['conditions'] = array('base_points' => 25);
+              $playersWith25 = count($players->find('all')
+                                 ->where(['players.base_points' => 25,'players.team_id' => $teamId])
+                                 ->contain(['Teams'])
+                                 ->toArray());
+
+              $playersWith15 =  count($players->find('all')
+                                 ->where(['players.base_points' => 15,'players.team_id' => $teamId])
+                                 ->contain(['Teams'])
+                                 ->toArray()); 
+
+              if($player_base_points == 25)
+              {
+                  $playersWith25 += 1;
+              }
+              else if($player_base_points == 15)
+              {
+                  echo "base points = 15";
+                  $playersWith15++;
+              }
+              if($playersWith25 <= 2)
+              {
+                  if($playersWith15 <= 3)
+                  {
+                      return true;
+                  }
+              }   
+          }
+          return false;
+    }
+
 }
