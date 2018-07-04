@@ -107,4 +107,15 @@ class TeamsTable extends Table
           } 
     }
 
+    public function getTeamId($team_name)
+    {
+        $teams = TableRegistry::get("Teams");
+        $query = $teams->find();
+        $team = $query->select(['id'])
+                      ->where(['name' => $team_name])
+                      ->toArray();
+        $team_id = $team[0]['id'];
+        return $team_id;   
+    }
+
 }

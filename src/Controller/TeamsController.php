@@ -5,6 +5,8 @@ use App\Controller\AppController;
 
 use Cake\ORM\TableRegistry;
 
+use Cake\Collection\Collection;
+
 /**
  * Teams Controller
  *
@@ -55,6 +57,7 @@ class TeamsController extends AppController
     {
         $team = $this->Teams->newEntity();
         if ($this->request->is('post')) {
+            $bidder = $this->request->getData('player');
             $team = $this->Teams->patchEntity($team, $this->request->getData());
             $team->bid_points = 100;
             $team->played = 0;
@@ -65,7 +68,9 @@ class TeamsController extends AppController
             if ($this->Teams->save($team)) {
                 $this->Flash->success(__('The team has been saved.'));
 
-                return $this->redirect(['action' => 'index']);
+                // return $this->redirect(['action' => 'index']);
+                $teamId = $team->id;
+                $this->Teams->Players->mapPlayerToTeam($bidder,$teamId,0);
             }
             $this->Flash->error(__('The team could not be saved. Please, try again.'));
         }
@@ -113,13 +118,29 @@ class TeamsController extends AppController
     {
         $this->request->allowMethod(['post', 'delete']);
         $team = $this->Teams->get($id);
+
+        $players = TableRegistry::get("Players");
+        $playersInTeam = $players->find('all')
+                                 ->contain(['Teams'])
+                                 ->where(['players.team_id' => $id]);
+        foreach ($playersInTeam as $player) 
+        {
+            $data = ['team_id' => null];  
+            $player = $players->patchEntity($player, $data, ['validate' => false]);
+            if ($players->save($player)) 
+            {
+                echo "successfully mapped player to team";
+            }         
+        }
         if ($this->Teams->delete($team)) {
             $this->Flash->success(__('The team has been deleted.'));
         } else {
             $this->Flash->error(__('The team could not be deleted. Please, try again.'));
         }
-
-        return $this->redirect(['action' => 'index']);
+        $teams = TableRegistry::get("Teams");
+        $teams = $teams->find('all');
+        $this->set("teams",$teams);
+        $this->set("_serialize",true);
     }
 
     public function allowCrossOrigin()
@@ -149,38 +170,34 @@ class TeamsController extends AppController
         $players = TableRegistry::get("Players");
         $teams = TableRegistry::get("Teams");
 
-        $playersWith25 = count($players->find('all')
-                                 ->where(['players.base_points' => 25])
-                                 ->contain(['Teams'])
-                                 ->group('teams.id')
-                                 ->toArray());
-
-        $playersWith15 = count($players->find('all')
-                                 ->where(['players.base_points' => 15])
-                                 ->contain(['Teams'])
-                                 ->group('teams.id')
-                                 ->toArray()); 
-
-        // $teams = $teams->find('all')
-        //                ->where([$playersWith25 <= 2,$playersWith15 <= 2,'bid_points' >= $player_base_points])
-        //                ->toArray();
-
         $teams = $teams->find('all')
-                       ->where([count($players->find('all')
-                                 ->where(['players.base_points' => 25])
-                                 ->contain(['Teams'])
-                                 // ->group('teams.id')
-                                 ->toArray()) < 2,
-                                 count($players->find('all')
-                                 ->where(['players.base_points' => 15])
-                                 ->contain(['Teams'])
-                                 // ->group('teams.id')
-                                 ->toArray()) < 3,
-                                 'bid_points' >= $player_base_points])
-                       ->toArray();
+                              ->contain(['Players'])
+                              ->toArray();
+        $validTeams = array();
+        foreach ($teams as $team) {
+            $playersCount = array();
+            $count_25 = 0;
+            $count_15 = 0;
+            foreach ($team->players as $player) {
+                if($player->base_points == 25)
+                {
+                    $count_25++;
+                }
+                if($player->base_points == 15)
+                {
+                    $count_15++;
+                }
+            }
+            if(($count_25 < 2 || $count_15 < 3) && ($count_25 + $count_15) < 4)
+            {
+                array_push($validTeams,$team);
+            }
+        }
+
 
         $this->allowCrossOrigin();
-        $this->set("teams",$teams);
+        // $this->set("teamCount",$players);
+        $this->set("teams",$validTeams);
         $this->set("_serialize",true);
 
     }

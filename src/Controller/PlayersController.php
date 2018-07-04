@@ -77,7 +77,7 @@ class PlayersController extends AppController
             if ($this->Players->save($player)) {
                 $this->Flash->success(__('The player has been saved.'));
 
-                return $this->redirect(['action' => 'index']);
+                // return $this->redirect(['action' => 'index']);
             }
             $this->Flash->error(__('The player could not be saved. Please, try again.'));
         }
@@ -85,8 +85,11 @@ class PlayersController extends AppController
         // $teams = $this->Players->Teams->find('list', ['limit' => 200]);
         // $boards = $this->Players->Boards->find('list', ['limit' => 200]);
         $this->allowCrossOrigin();
+        $players = TableRegistry::get("Players");
+        $players = $players->find('all');
+        $this->set("players",$players);
         $this->set("_serialize",true);
-        $this->set(compact('player'));
+        // $this->set(compact('player'));
     }
 
     /**
@@ -111,10 +114,6 @@ class PlayersController extends AppController
             }
             $this->Flash->error(__('The player could not be saved. Please, try again.'));
         }
-        // $roles = $this->Players->Roles->find('list', ['limit' => 200]);
-        // $teams = $this->Players->Teams->find('list', ['limit' => 200]);
-        // $boards = $this->Players->Boards->find('list', ['limit' => 200]);
-        // $this->set(compact('player', 'roles', 'teams', 'boards'));
         $this->allowCrossOrigin();
         $this->set("player",$player);
         $this->set("_serialize",true);
@@ -137,7 +136,10 @@ class PlayersController extends AppController
             $this->Flash->error(__('The player could not be deleted. Please, try again.'));
         }
 
-        return $this->redirect(['action' => 'index']);
+        $players = TableRegistry::get("Players");
+        $players = $players->find('all');
+        $this->set("players",$players);
+        $this->set("_serialize",true);
     }
 
     public function allowCrossOrigin()
@@ -155,8 +157,12 @@ class PlayersController extends AppController
 
         $players = TableRegistry::get("Players");
         $playersCount = count($players->find('all')
-                                 ->where(['team_id' => null,'base_points' => 25])
-                                 ->toArray());
+                                 ->where(['team_id' => null,'base_points' => 25]));
+        $convertTo15 = $this->Players->checkIfPlayersAreSold();
+        if($convertTo15)
+        {
+            $this->Players->updatePlayerBasePoints();
+        }
 
         if($playersCount > 0)
         {
@@ -197,7 +203,7 @@ class PlayersController extends AppController
             $bid_points = $this->request->data['bidPoints'];
 
             $teams = TableRegistry::get("Teams");
-            $team_id = $this->getTeamId($team_name);
+            $team_id = $this->Players->Teams->getTeamId($team_name);
             $players = TableRegistry::get("Players");
 
             $team = $teams->get($team_id);

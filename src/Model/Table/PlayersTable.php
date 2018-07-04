@@ -113,7 +113,8 @@ class PlayersTable extends Table
 
         $query = $players->find();
         $players = $query->select(['id'])
-                         ->where(['base_points' => $basePoints]);
+                         ->where(['base_points' => $basePoints,'team_id IS NULL'])
+                         ->all();
                 
         echo count($players);
 
@@ -139,8 +140,14 @@ class PlayersTable extends Table
     {
           $players = TableRegistry::get("Players");
           $player = $players->get($playerId);
-
-          $data = ['team_id' => $teamId, 'bid_value' => $bidPoints];
+          if($bidPoints != 0)
+          {
+              $data = ['team_id' => $teamId, 'bid_value' => $bidPoints];
+          }
+          else
+          {
+              $data = ['team_id' => $teamId];  
+          }
           $player = $players->patchEntity($player, $data, ['validate' => false]);
           if ($players->save($player)) 
           {
@@ -168,24 +175,71 @@ class PlayersTable extends Table
                                  ->contain(['Teams'])
                                  ->toArray()); 
 
-              if($player_base_points == 25)
+              if($playersWith25 < 2)
               {
-                  $playersWith25 += 1;
-              }
-              else if($player_base_points == 15)
-              {
-                  echo "base points = 15";
-                  $playersWith15++;
-              }
-              if($playersWith25 <= 2)
-              {
-                  if($playersWith15 <= 3)
+                  if($playersWith15 < 3)
                   {
                       return true;
                   }
               }   
           }
           return false;
+    }
+
+    public function updatePlayerBasePoints()
+    {
+        $players = TableRegistry::get("Players");
+        $players = $players->find('all')
+                           ->where(['team_id IS NULL']);
+
+        foreach ($players as $player) 
+        {
+            $data = ['base_points' => 15];  
+            $player = $players->patchEntity($player, $data, ['validate' => false]);
+            if ($players->save($player)) 
+            {
+                echo "successfully mapped player to team";
+            }      
+        }    
+    }
+
+    public function checkIfPlayersAreSold()
+    {
+        $players = TableRegistry::get("Players");
+        $teams = TableRegistry::get("Teams");
+
+        $teams = $teams->find('all')
+                              ->contain(['Players'])
+                              ->toArray();
+        $validTeams = array();
+        $countTeam = 0;
+        foreach ($teams as $team) 
+        {
+            $playersCount = array();
+            $count_25 = 0;
+            $count_15 = 0;
+            foreach ($team->players as $player) 
+            {
+                if($player->base_points == 25)
+                {
+                    $count_25++;
+                }
+                if($player->base_points == 15)
+                {
+                    $count_15++;
+                }
+            }
+
+            if($count_25 ==2 && ($count_15 + $count_25) < 4)
+            {
+                $countTeam++;
+            }  
+        }
+        if($countTeam == count($teams))
+        {
+            return true;
+        }
+        return false;
     }
 
 }
