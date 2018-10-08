@@ -1,22 +1,22 @@
 <?php
 namespace App\Test\TestCase\Model\Table;
 
-use App\Model\Table\PlayersTable;
+use App\Model\Table\BoardsPlayersTable;
 use Cake\ORM\TableRegistry;
 use Cake\TestSuite\TestCase;
 
 /**
- * App\Model\Table\PlayersTable Test Case
+ * App\Model\Table\BoardsPlayersTable Test Case
  */
-class PlayersTableTest extends TestCase
+class BoardsPlayersTableTest extends TestCase
 {
 
     /**
      * Test subject
      *
-     * @var \App\Model\Table\PlayersTable
+     * @var \App\Model\Table\BoardsPlayersTable
      */
-    public $Players;
+    public $BoardsPlayers;
 
     /**
      * Fixtures
@@ -24,10 +24,9 @@ class PlayersTableTest extends TestCase
      * @var array
      */
     public $fixtures = [
-        'app.players',
-        'app.roles',
-        'app.teams',
-        'app.boards'
+        'app.boards_players',
+        'app.boards',
+        'app.players'
     ];
 
     /**
@@ -38,8 +37,8 @@ class PlayersTableTest extends TestCase
     public function setUp()
     {
         parent::setUp();
-        $config = TableRegistry::getTableLocator()->exists('Players') ? [] : ['className' => PlayersTable::class];
-        $this->Players = TableRegistry::getTableLocator()->get('Players', $config);
+        $config = TableRegistry::getTableLocator()->exists('BoardsPlayers') ? [] : ['className' => BoardsPlayersTable::class];
+        $this->BoardsPlayers = TableRegistry::getTableLocator()->get('BoardsPlayers', $config);
     }
 
     /**
@@ -49,7 +48,7 @@ class PlayersTableTest extends TestCase
      */
     public function tearDown()
     {
-        unset($this->Players);
+        unset($this->BoardsPlayers);
 
         parent::tearDown();
     }

@@ -16,7 +16,7 @@ class MainControllerTest extends IntegrationTestCase
      * @var array
      */
     public $fixtures = [
-        'app.main'
+        
     ];
 
     /**
